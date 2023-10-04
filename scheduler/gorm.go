@@ -17,16 +17,16 @@ func NewGormScheduler(db *gorm.DB, logger logger.Logger) Scheduler {
 	return &GormScheduler{db, logger}
 }
 
-func (s *GormScheduler) Do(c context.Context, t Task, f func() error) {
+func (s *GormScheduler) Do(c context.Context, t *Task, f func() error) {
 	t.StartedAt = time.Now()
-	err := s.DB.WithContext(c).Create(&t).Error
+	err := s.DB.WithContext(c).Create(t).Error
 	if err != nil {
 		s.Logger.Error(err)
 		return
 	}
 	defer func() {
 		t.StoppedAt = time.Now()
-		err = s.DB.WithContext(c).Updates(&t).Error
+		err = s.DB.WithContext(c).Updates(t).Error
 		if err != nil {
 			s.Logger.Error(err)
 		}

@@ -13,5 +13,5 @@ type Task struct {
 }
 
 type Scheduler interface {
-	Do(c context.Context, t Task, f func() error)
+	Do(c context.Context, t *Task, f func() error)
 }
