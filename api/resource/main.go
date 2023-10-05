@@ -12,10 +12,6 @@ import (
 
 type Resource[T any] struct{}
 
-func New[T any](router *mux.Router, db *gorm.DB) *Resource[T] {
-	return &Resource[T]{}
-}
-
 func (r Resource[T]) Init(db *gorm.DB, rt *mux.Router) error {
 	var (
 		t          T
