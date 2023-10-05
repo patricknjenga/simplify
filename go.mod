@@ -12,7 +12,6 @@ require (
 	golang.org/x/crypto v0.13.0
 	golang.org/x/sync v0.3.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.4
 )
 
@@ -24,7 +23,6 @@ require (
 	github.com/geoffgarside/ber v1.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/fs v0.1.0 // indirect
