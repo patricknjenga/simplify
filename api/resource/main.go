@@ -10,40 +10,53 @@ import (
 	"gorm.io/gorm"
 )
 
+type IResource interface {
+	init(db *gorm.DB, rt *mux.Router) error
+	schema() (string, map[string]string)
+}
+
 type Resource[T any] struct{}
 
-func (r Resource[T]) Init(db *gorm.DB, rt *mux.Router) error {
+func New[T any]() *Resource[T] {
+	return &Resource[T]{}
+}
+
+func (r *Resource[T]) init(db *gorm.DB, rt *mux.Router) error {
 	var (
 		t          T
-		name       = reflect.TypeOf(t).Name()
 		repository = NewGormRepository[T](db)
 		service    = NewResourceService[T](repository)
-		handler    = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", name)).Subrouter(), service)
+		handler    = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", reflect.TypeOf(t).Name())).Subrouter(), service)
 	)
+
 	handler.Register()
 	return db.AutoMigrate(&t)
 }
 
-func NewArr(r *mux.Router, db *gorm.DB, rs ...Resource[any]) error {
+func (r *Resource[T]) schema() (string, map[string]string) {
+	var (
+		fields = map[string]string{}
+		t      T
+	)
+	for i := 0; i < reflect.TypeOf(t).NumField(); i++ {
+		field := reflect.TypeOf(t).Field(i)
+		fields[field.Name] = field.Type.String()
+	}
+	return reflect.TypeOf(t).Name(), fields
+}
+
+func NewArr(r *mux.Router, db *gorm.DB, rs ...IResource) error {
+	var res = map[string]map[string]string{}
 	for _, v := range rs {
-		err := v.Init(db, r)
+		err := v.init(db, r)
 		if err != nil {
 			return err
 		}
+		name, fields := v.schema()
+		res[name] = fields
+
 	}
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
-		var res = map[string]map[string]string{}
-		for _, v := range rs {
-			var (
-				resource = reflect.TypeOf(v)
-				fields   = map[string]string{}
-			)
-			for i := 0; i < resource.NumField(); i++ {
-				field := resource.Field(i)
-				fields[field.Name] = field.Type.String()
-			}
-			res[resource.Name()] = fields
-		}
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
