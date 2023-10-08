@@ -24,29 +24,17 @@ func (o *Oracle) Open() error {
 	return err
 }
 
-func OpenArr(oracles []*Oracle) ([]*Oracle, error) {
-	var (
-		eg  errgroup.Group
-		mu  sync.Mutex
-		res []*Oracle
-	)
+func OpenArr(oracles []*Oracle) error {
 	for _, v := range oracles {
-		oracle := v
-		eg.Go(func() error {
-			err := oracle.Open()
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			res = append(res, oracle)
-			mu.Unlock()
-			return nil
-		})
+		err := v.Open()
+		if err != nil {
+			return err
+		}
 	}
-	return res, eg.Wait()
+	return nil
 }
 
-func QueryArr[T any](c context.Context, oracles []*Oracle, q string) ([]T, error) {
+func QueryArr[T any](c context.Context, oracles []*Oracle, q string, values ...interface{}) ([]T, error) {
 	var (
 		eg  errgroup.Group
 		mu  sync.Mutex
@@ -56,7 +44,7 @@ func QueryArr[T any](c context.Context, oracles []*Oracle, q string) ([]T, error
 		oracle := v
 		eg.Go(func() error {
 			var t []T
-			err := oracle.DB.WithContext(c).Raw(q).Scan(&t).Error
+			err := oracle.DB.WithContext(c).Raw(q, values...).Scan(&t).Error
 			if err != nil {
 				return err
 			}
