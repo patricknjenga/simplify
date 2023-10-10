@@ -18,6 +18,7 @@ type IResource interface {
 
 type Resource[T any] struct {
 	Handler    IHandler[T]
+	Name       string
 	Repository IRepository[T]
 	Service    IService[T]
 }
@@ -25,11 +26,12 @@ type Resource[T any] struct {
 func New[T any](rt *mux.Router, db *gorm.DB) *Resource[T] {
 	var (
 		t T
+		n = reflect.TypeOf(t).Name()
 		r = NewGormRepository[T](db)
 		s = NewResourceService[T](r)
-		h = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", reflect.TypeOf(t).Name())).Subrouter(), s)
+		h = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", n)).Subrouter(), s)
 	)
-	return &Resource[T]{h, r, s}
+	return &Resource[T]{h, n, r, s}
 }
 
 func (r *Resource[T]) RegisterRoutes() {
