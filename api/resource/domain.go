@@ -28,7 +28,7 @@ type IRepository[T any] interface {
 }
 
 type IHandler[T any] interface {
-	Register()
+	RegisterRoutes()
 	Create(w http.ResponseWriter, r *http.Request)
 	Destroy(w http.ResponseWriter, r *http.Request)
 	Index(w http.ResponseWriter, r *http.Request)

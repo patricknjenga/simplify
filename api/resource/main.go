@@ -11,29 +11,37 @@ import (
 )
 
 type IResource interface {
-	init(db *gorm.DB, rt *mux.Router) error
-	schema() (string, map[string]string)
+	Migrate(db *gorm.DB) error
+	RegisterRoutes()
+	Schema() (string, map[string]string)
 }
 
-type Resource[T any] struct{}
-
-func New[T any]() *Resource[T] {
-	return &Resource[T]{}
+type Resource[T any] struct {
+	Handler    IHandler[T]
+	Repository IRepository[T]
+	Service    IService[T]
 }
 
-func (r *Resource[T]) init(db *gorm.DB, rt *mux.Router) error {
+func New[T any](rt *mux.Router, db *gorm.DB) *Resource[T] {
 	var (
-		t          T
-		repository = NewGormRepository[T](db)
-		service    = NewResourceService[T](repository)
-		handler    = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", reflect.TypeOf(t).Name())).Subrouter(), service)
+		t T
+		r = NewGormRepository[T](db)
+		s = NewResourceService[T](r)
+		h = NewResourceHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", reflect.TypeOf(t).Name())).Subrouter(), s)
 	)
+	return &Resource[T]{h, r, s}
+}
 
-	handler.Register()
+func (r *Resource[T]) RegisterRoutes() {
+	r.Handler.RegisterRoutes()
+}
+
+func (r *Resource[T]) Migrate(db *gorm.DB) error {
+	var t T
 	return db.AutoMigrate(&t)
 }
 
-func (r *Resource[T]) schema() (string, map[string]string) {
+func (r *Resource[T]) Schema() (string, map[string]string) {
 	var (
 		fields = map[string]string{}
 		t      T
@@ -48,13 +56,13 @@ func (r *Resource[T]) schema() (string, map[string]string) {
 func NewArr(r *mux.Router, db *gorm.DB, rs ...IResource) error {
 	var res = map[string]map[string]string{}
 	for _, v := range rs {
-		err := v.init(db, r)
+		v.RegisterRoutes()
+		err := v.Migrate(db)
 		if err != nil {
 			return err
 		}
-		name, fields := v.schema()
+		name, fields := v.Schema()
 		res[name] = fields
-
 	}
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)

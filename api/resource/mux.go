@@ -18,7 +18,7 @@ func NewResourceHandler[T any](router *mux.Router, service IService[T]) IHandler
 	return &MuxHandler[T]{router, service}
 }
 
-func (h MuxHandler[T]) Register() {
+func (h MuxHandler[T]) RegisterRoutes() {
 	h.Router.HandleFunc("/", h.Create).Methods(http.MethodPost)
 	h.Router.HandleFunc("/", h.Index).Methods(http.MethodGet)
 	h.Router.HandleFunc("/{id:[0-9]+}", h.Destroy).Methods(http.MethodDelete)
