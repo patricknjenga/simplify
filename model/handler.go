@@ -1,4 +1,4 @@
-package resource
+package model
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ type MuxHandler[T any] struct {
 	Service IService[T]
 }
 
-func NewResourceHandler[T any](router *mux.Router, service IService[T]) IHandler[T] {
+func NewModelHandler[T any](router *mux.Router, service IService[T]) IHandler[T] {
 	return &MuxHandler[T]{router, service}
 }
 

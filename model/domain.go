@@ -1,4 +1,4 @@
-package resource
+package model
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type Query struct {
 	Search    map[string]any
 }
 
-type ResourceIndex[T any] struct {
+type Index[T any] struct {
 	Data  []T
 	Query Query
 }
@@ -22,7 +22,7 @@ type ResourceIndex[T any] struct {
 type IRepository[T any] interface {
 	Create(c context.Context, t *T) error
 	Destroy(c context.Context, id int) error
-	Index(c context.Context, q Query) (ResourceIndex[T], error)
+	Index(c context.Context, q Query) (Index[T], error)
 	Show(c context.Context, id int) (*T, error)
 	Update(c context.Context, id int, t *T) error
 }
@@ -39,7 +39,7 @@ type IHandler[T any] interface {
 type IService[T any] interface {
 	Create(c context.Context, t *T) error
 	Destroy(c context.Context, id int) error
-	Index(c context.Context, q Query) (ResourceIndex[T], error)
+	Index(c context.Context, q Query) (Index[T], error)
 	Show(c context.Context, id int) (*T, error)
 	Update(c context.Context, id int, t *T) error
 }

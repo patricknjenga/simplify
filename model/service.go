@@ -1,4 +1,4 @@
-package resource
+package model
 
 import "context"
 
@@ -6,7 +6,7 @@ type Service[T any] struct {
 	Repository IRepository[T]
 }
 
-func NewResourceService[T any](r IRepository[T]) IService[T] {
+func NewModelService[T any](r IRepository[T]) IService[T] {
 	return &Service[T]{
 		Repository: r,
 	}
@@ -20,7 +20,7 @@ func (s Service[T]) Destroy(c context.Context, id int) error {
 	return s.Repository.Destroy(c, id)
 }
 
-func (s Service[T]) Index(c context.Context, q Query) (ResourceIndex[T], error) {
+func (s Service[T]) Index(c context.Context, q Query) (Index[T], error) {
 	return s.Repository.Index(c, q)
 }
 
