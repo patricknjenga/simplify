@@ -16,7 +16,13 @@ func Schema(r *mux.Router, s ...any) error {
 			field := reflect.TypeOf(v).Field(i)
 			fields[field.Name] = field.Type.String()
 		}
-		res[reflect.TypeOf(v).Elem().Name()] = fields
+		var name string
+		if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
+			name = t.Elem().Name()
+		} else {
+			name = t.Name()
+		}
+		res[name] = fields
 	}
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
