@@ -16,6 +16,11 @@ type Query struct {
 	Search    map[string]any
 }
 
+type QueryResult[T any] struct {
+	Data  []T
+	Query Query
+}
+
 type IRepository[T any] interface {
 	Create(c context.Context, t T) error
 	CreateBatch(c context.Context, t []T) error
@@ -23,7 +28,7 @@ type IRepository[T any] interface {
 	DeleteAll(c context.Context) error
 	DeleteBatch(c context.Context, ids []int) error
 	Get(c context.Context, id int) (T, error)
-	Query(c context.Context, q Query) (map[string]any, error)
+	Query(c context.Context, q Query) (QueryResult[T], error)
 	Update(c context.Context, id int, t T) error
 }
 
@@ -63,7 +68,7 @@ func (r Repository[T]) Get(c context.Context, id int) (T, error) {
 	return t, r.DB.WithContext(c).First(&t, id).Error
 }
 
-func (r Repository[T]) Query(c context.Context, q Query) (map[string]any, error) {
+func (r Repository[T]) Query(c context.Context, q Query) (QueryResult[T], error) {
 	var (
 		t       T
 		data    []T
@@ -78,9 +83,9 @@ func (r Repository[T]) Query(c context.Context, q Query) (map[string]any, error)
 	if q.Search != nil {
 		builder = builder.Where(q.Search)
 	}
-	return map[string]any{
-		"Data":  data,
-		"Query": q,
+	return QueryResult[T]{
+		Data:  data,
+		Query: q,
 	}, builder.Limit(q.Limit).Offset(q.Offset).Find(&data).Error
 }
 

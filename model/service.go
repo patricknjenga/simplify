@@ -11,7 +11,7 @@ type IService[T any] interface {
 	DeleteAll(c context.Context) error
 	DeleteBatch(c context.Context, ids []int) error
 	Get(c context.Context, id int) (T, error)
-	Query(c context.Context, q Query) (map[string]any, error)
+	Query(c context.Context, q Query) (QueryResult[T], error)
 	Update(c context.Context, id int, t T) error
 }
 
@@ -49,7 +49,7 @@ func (s Service[T]) Get(c context.Context, id int) (T, error) {
 	return s.Repository.Get(c, id)
 }
 
-func (s Service[T]) Query(c context.Context, q Query) (map[string]any, error) {
+func (s Service[T]) Query(c context.Context, q Query) (QueryResult[T], error) {
 	return s.Repository.Query(c, q)
 }
 
