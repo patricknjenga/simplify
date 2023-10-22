@@ -6,7 +6,7 @@ import (
 
 type IService[T any] interface {
 	Create(c context.Context, t T) error
-	CreateBatch(c context.Context, t []T) error
+	CreateBatch(c context.Context, t []T, b int) error
 	Delete(c context.Context, id int) error
 	DeleteAll(c context.Context) error
 	DeleteBatch(c context.Context, ids []int) error
@@ -29,8 +29,8 @@ func (s Service[T]) Create(c context.Context, t T) error {
 	return s.Repository.Create(c, t)
 }
 
-func (s Service[T]) CreateBatch(c context.Context, t []T) error {
-	return s.Repository.CreateBatch(c, t)
+func (s Service[T]) CreateBatch(c context.Context, t []T, b int) error {
+	return s.Repository.CreateBatch(c, t, b)
 }
 
 func (s Service[T]) Delete(c context.Context, id int) error {

@@ -84,7 +84,7 @@ func (h MuxHandler[T]) CreateBatch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	err = h.Service.CreateBatch(r.Context(), t)
+	err = h.Service.CreateBatch(r.Context(), t, 100)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

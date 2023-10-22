@@ -23,7 +23,7 @@ type QueryResult[T any] struct {
 
 type IRepository[T any] interface {
 	Create(c context.Context, t T) error
-	CreateBatch(c context.Context, t []T) error
+	CreateBatch(c context.Context, t []T, b int) error
 	Delete(c context.Context, id int) error
 	DeleteAll(c context.Context) error
 	DeleteBatch(c context.Context, ids []int) error
@@ -44,8 +44,8 @@ func (r Repository[T]) Create(c context.Context, t T) error {
 	return r.DB.WithContext(c).Create(&t).Error
 }
 
-func (r Repository[T]) CreateBatch(c context.Context, t []T) error {
-	return r.DB.WithContext(c).Create(&t).Error
+func (r Repository[T]) CreateBatch(c context.Context, t []T, b int) error {
+	return r.DB.WithContext(c).CreateInBatches(&t, b).Error
 }
 
 func (r Repository[T]) Delete(c context.Context, id int) error {
