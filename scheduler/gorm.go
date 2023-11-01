@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/patricknjenga/simplify/errors"
 	"gorm.io/gorm"
 )
 
@@ -18,20 +17,10 @@ func NewGormScheduler(db *gorm.DB) Scheduler {
 
 func (s *GormScheduler) Do(c context.Context, t *Task, f func() error) {
 	t.StartedAt = time.Now()
-	err := s.DB.WithContext(c).Create(t).Error
-	if err != nil {
-		errors.Log(err)
-		return
-	}
+	s.DB.WithContext(c).Create(t)
 	defer func() {
 		t.StoppedAt = time.Now()
-		err = s.DB.WithContext(c).Updates(t).Error
-		if err != nil {
-			errors.Log(err)
-		}
+		s.DB.WithContext(c).Updates(t)
 	}()
-	err = f()
-	if err != nil {
-		errors.Log(err)
-	}
+	t.Error = f().Error()
 }

@@ -10,6 +10,7 @@ type Task struct {
 	Name      string
 	StartedAt time.Time
 	StoppedAt time.Time
+	Error     string
 }
 
 type Scheduler interface {
