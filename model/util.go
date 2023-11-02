@@ -34,7 +34,7 @@ func Fields(x any, f map[string]string) {
 	ts := reflect.TypeOf(x)
 	vs := reflect.ValueOf(x)
 	for i := 0; i < ts.NumField(); i++ {
-		switch ts.Field(i).Name {
+		switch ts.Field(i).Type.String() {
 		case "gorm.Model":
 			Fields(vs.Field(i).Interface(), f)
 		default:

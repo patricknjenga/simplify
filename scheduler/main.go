@@ -3,14 +3,15 @@ package scheduler
 import (
 	"context"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Task struct {
-	ID        uint
-	Name      string
-	StartedAt time.Time
-	StoppedAt time.Time
 	Error     string
+	Name      string
+	StoppedAt time.Time
+	gorm.Model
 }
 
 type Scheduler interface {
