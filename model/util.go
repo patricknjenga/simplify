@@ -14,15 +14,17 @@ type Field struct {
 }
 
 func Schema(r *mux.Router, s ...any) error {
-	var res = map[string][]Field{}
+	var res = map[string]map[string]string{}
 	for _, v := range s {
 		var name string
+		fields := map[string]string{}
 		if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
 			name = t.Elem().Name()
 		} else {
 			name = t.Name()
 		}
-		res[name] = Fields(v)
+		Fields(v, fields)
+		res[name] = fields
 	}
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
@@ -33,21 +35,15 @@ func Schema(r *mux.Router, s ...any) error {
 	return nil
 }
 
-func Fields(x any) []Field {
-	var (
-		res = []Field{}
-		ts  = reflect.TypeOf(x)
-		vs  = reflect.ValueOf(x)
-	)
+func Fields(x any, f map[string]string) {
+	ts := reflect.TypeOf(x)
+	vs := reflect.ValueOf(x)
 	for i := 0; i < ts.NumField(); i++ {
-		if vs.Field(i).Kind() == reflect.Struct {
-			res = append(res, Fields(vs.Field(i).Interface())...)
-		} else {
-			res = append(res, Field{
-				Name: ts.Field(i).Name,
-				Type: ts.Field(i).Type.String(),
-			})
+		switch ts.Field(i).Name {
+		case "gorm.Model":
+			Fields(vs.Field(i).Interface(), f)
+		default:
+			f[ts.Field(i).Name] = ts.Field(i).Type.String()
 		}
 	}
-	return res
 }
