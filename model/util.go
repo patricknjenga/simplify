@@ -8,11 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Field struct {
-	Name string
-	Type string
-}
-
 func Schema(r *mux.Router, s ...any) error {
 	var res = map[string]map[string]string{}
 	for _, v := range s {
