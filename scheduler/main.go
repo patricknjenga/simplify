@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"context"
-	"time"
+	"database/sql"
 
 	"gorm.io/gorm"
 )
@@ -10,7 +10,7 @@ import (
 type Task struct {
 	Error     string
 	Name      string
-	StoppedAt time.Time
+	StoppedAt sql.NullTime
 	gorm.Model
 }
 
