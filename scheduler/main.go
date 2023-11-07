@@ -8,7 +8,7 @@ import (
 )
 
 type Task struct {
-	Error     string
+	Error     error
 	Name      string
 	StoppedAt *time.Time
 	gorm.Model
