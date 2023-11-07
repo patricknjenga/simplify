@@ -22,5 +22,8 @@ func (s *GormScheduler) Do(c context.Context, t *Task, f func() error) {
 		t.StoppedAt = &time
 		s.DB.WithContext(c).Updates(t)
 	}()
-	t.Error = f()
+	err := f()
+	if err != nil {
+		t.Error = err.Error()
+	}
 }
