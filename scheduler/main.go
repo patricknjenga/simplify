@@ -2,15 +2,14 @@ package scheduler
 
 import (
 	"context"
-	"time"
 
 	"gorm.io/gorm"
 )
 
 type Task struct {
-	Error     string
-	Name      string
-	StoppedAt *time.Time
+	Duration string
+	Error    string
+	Name     string
 	gorm.Model
 }
 

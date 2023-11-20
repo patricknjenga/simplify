@@ -18,8 +18,7 @@ func NewGormScheduler(db *gorm.DB) Scheduler {
 func (s *GormScheduler) Do(c context.Context, t *Task, f func() error) {
 	s.DB.WithContext(c).Create(t)
 	defer func() {
-		time := time.Now()
-		t.StoppedAt = &time
+		t.Duration = time.Since(t.CreatedAt).String()
 		s.DB.WithContext(c).Updates(t)
 	}()
 	err := f()
