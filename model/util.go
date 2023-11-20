@@ -28,7 +28,9 @@ type Schema struct {
 func ActionRoute(r *mux.Router, s ...Action) {
 	var res []Action
 	for _, v := range s {
-		v.Fields = Fields(v.Struct)
+		if v.Struct != nil {
+			v.Fields = Fields(v.Struct)
+		}
 		res = append(res, v)
 	}
 	r.HandleFunc("/Actions", func(w http.ResponseWriter, r *http.Request) {
