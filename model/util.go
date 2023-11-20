@@ -8,18 +8,45 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Schema(r *mux.Router, s ...any) error {
-	var res = map[string]map[string]map[string]string{}
+type Action struct {
+	Fields []Field
+	Struct any
+	Url    string
+}
+
+type Field struct {
+	Name string
+	Tag  reflect.StructTag
+	Type string
+}
+
+type Schema struct {
+	Fields []Field
+	Name   string
+}
+
+func ActionRoute(r *mux.Router, s ...Action) {
+	var res []Action
 	for _, v := range s {
-		var name string
-		fields := map[string]map[string]string{}
-		if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
-			name = t.Elem().Name()
-		} else {
-			name = t.Name()
+		v.Fields = Fields(v.Struct)
+		res = append(res, v)
+	}
+	r.HandleFunc("/Actions", func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		Fields(v, fields)
-		res[name] = fields
+	})
+}
+
+func SchemaRoute(r *mux.Router, s ...any) {
+	var res []Schema
+	for _, v := range s {
+		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
+			res = append(res, Schema{Fields(v), t.Name()})
+		} else {
+			res = append(res, Schema{Fields(v), t.Elem().Name()})
+		}
 	}
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
@@ -27,21 +54,25 @@ func Schema(r *mux.Router, s ...any) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
-	return nil
 }
 
-func Fields(x any, f map[string]map[string]string) {
-	ts := reflect.TypeOf(x)
-	vs := reflect.ValueOf(x)
-	for i := 0; i < ts.NumField(); i++ {
-		switch ts.Field(i).Type.String() {
+func Fields(x any) []Field {
+	var (
+		result  []Field
+		typeOf  = reflect.TypeOf(x)
+		valueOf = reflect.ValueOf(x)
+	)
+	for i := 0; i < typeOf.NumField(); i++ {
+		switch typeOf.Field(i).Type.String() {
 		case "gorm.Model":
-			Fields(vs.Field(i).Interface(), f)
+			result = append(result, Fields(valueOf.Field(i).Interface())...)
 		default:
-			f[ts.Field(i).Name] = map[string]string{
-				"tag":  string(ts.Field(i).Tag),
-				"type": ts.Field(i).Type.String(),
-			}
+			result = append(result, Field{
+				Name: typeOf.Field(i).Name,
+				Tag:  typeOf.Field(i).Tag,
+				Type: typeOf.Field(i).Type.String(),
+			})
 		}
 	}
+	return result
 }
