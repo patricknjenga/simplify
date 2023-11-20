@@ -36,7 +36,7 @@ func ActionRoute(r *mux.Router, s ...Action) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-	})
+	}).Methods(http.MethodGet)
 }
 
 func SchemaRoute(r *mux.Router, s ...any) {
@@ -48,12 +48,13 @@ func SchemaRoute(r *mux.Router, s ...any) {
 			res = append(res, Schema{Fields(v), t.Elem().Name()})
 		}
 	}
+
 	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-	})
+	}).Methods(http.MethodGet)
 }
 
 func Fields(x any) []Field {
