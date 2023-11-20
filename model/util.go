@@ -9,10 +9,10 @@ import (
 )
 
 func Schema(r *mux.Router, s ...any) error {
-	var res = map[string]map[string]string{}
+	var res = map[string]map[string]map[string]string{}
 	for _, v := range s {
 		var name string
-		fields := map[string]string{}
+		fields := map[string]map[string]string{}
 		if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
 			name = t.Elem().Name()
 		} else {
@@ -30,7 +30,7 @@ func Schema(r *mux.Router, s ...any) error {
 	return nil
 }
 
-func Fields(x any, f map[string]string) {
+func Fields(x any, f map[string]map[string]string) {
 	ts := reflect.TypeOf(x)
 	vs := reflect.ValueOf(x)
 	for i := 0; i < ts.NumField(); i++ {
@@ -38,7 +38,10 @@ func Fields(x any, f map[string]string) {
 		case "gorm.Model":
 			Fields(vs.Field(i).Interface(), f)
 		default:
-			f[ts.Field(i).Name] = ts.Field(i).Type.String()
+			f[ts.Field(i).Name] = map[string]string{
+				"tag":  string(ts.Field(i).Tag),
+				"type": ts.Field(i).Type.String(),
+			}
 		}
 	}
 }

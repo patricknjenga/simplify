@@ -31,22 +31,17 @@ func NewModelHandler[T any](router *mux.Router, service IService[T]) IHandler[T]
 }
 
 func (h MuxHandler[T]) RegisterRoutes() {
-	{
-		h.Router.HandleFunc("/", h.Create).Methods(http.MethodPost)
-		h.Router.HandleFunc("/batch", h.CreateBatch).Methods(http.MethodPost)
-	}
-	{
-		h.Router.HandleFunc("/all", h.DeleteAll).Methods(http.MethodDelete)
-		h.Router.HandleFunc("/batch", h.DeleteBatch).Methods(http.MethodDelete)
-		h.Router.HandleFunc("/{id:[0-9]+}", h.Delete).Methods(http.MethodDelete)
-	}
-	{
-		h.Router.HandleFunc("/", h.Query).Methods(http.MethodGet)
-		h.Router.HandleFunc("/{id:[0-9]+}", h.Get).Methods(http.MethodGet)
-	}
-	{
-		h.Router.HandleFunc("/{id:[0-9]+}", h.Update).Methods(http.MethodPut)
-	}
+	h.Router.HandleFunc("/", h.Create).Methods(http.MethodPost)
+	h.Router.HandleFunc("/batch", h.CreateBatch).Methods(http.MethodPost)
+
+	h.Router.HandleFunc("/all", h.DeleteAll).Methods(http.MethodDelete)
+	h.Router.HandleFunc("/batch", h.DeleteBatch).Methods(http.MethodDelete)
+	h.Router.HandleFunc("/{id:[0-9]+}", h.Delete).Methods(http.MethodDelete)
+
+	h.Router.HandleFunc("/", h.Query).Methods(http.MethodGet)
+	h.Router.HandleFunc("/{id:[0-9]+}", h.Get).Methods(http.MethodGet)
+
+	h.Router.HandleFunc("/{id:[0-9]+}", h.Update).Methods(http.MethodPut)
 }
 
 func (h MuxHandler[T]) Create(w http.ResponseWriter, r *http.Request) {
