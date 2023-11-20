@@ -26,7 +26,7 @@ type Schema struct {
 }
 
 func ActionRoute(r *mux.Router, s ...Action) {
-	var res []Action
+	var res = []Action{}
 	for _, v := range s {
 		if v.Struct != nil {
 			v.Fields = Fields(v.Struct)
@@ -42,7 +42,7 @@ func ActionRoute(r *mux.Router, s ...Action) {
 }
 
 func SchemaRoute(r *mux.Router, s ...any) {
-	var res []Schema
+	var res = []Schema{}
 	for _, v := range s {
 		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
 			res = append(res, Schema{Fields(v), t.Name()})
