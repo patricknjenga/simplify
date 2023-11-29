@@ -12,7 +12,7 @@ func New(user string, pass string, host string, port string, database string, mo
 	if err != nil {
 		return nil, err
 	}
-	err = db.Exec(fmt.Sprintf("create database if not exists %s", database)).Error
+	err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)).Error
 	if err != nil {
 		return nil, err
 	}
