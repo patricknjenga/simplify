@@ -74,10 +74,12 @@ func (h MuxHandler[T]) CreateBatch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = validator.New().Struct(&t)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-		return
+	for _, v := range t {
+		err = validator.New().Struct(&v)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
 	}
 	err = h.Service.CreateBatch(r.Context(), t, 100)
 	if err != nil {
