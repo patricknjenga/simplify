@@ -17,6 +17,7 @@ type IHandler[T any] interface {
 	DeleteAll(w http.ResponseWriter, r *http.Request)
 	DeleteBatch(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
+	GetAll(w http.ResponseWriter, r *http.Request)
 	Query(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 }
@@ -39,6 +40,7 @@ func (h MuxHandler[T]) RegisterRoutes() {
 	h.Router.HandleFunc("/{id:[0-9]+}", h.Delete).Methods(http.MethodDelete)
 
 	h.Router.HandleFunc("/", h.Query).Methods(http.MethodGet)
+	h.Router.HandleFunc("/all", h.GetAll).Methods(http.MethodGet)
 	h.Router.HandleFunc("/{id:[0-9]+}", h.Get).Methods(http.MethodGet)
 
 	h.Router.HandleFunc("/{id:[0-9]+}", h.Update).Methods(http.MethodPut)
@@ -158,6 +160,18 @@ func (h MuxHandler[T]) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data, err := h.Service.Get(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h MuxHandler[T]) GetAll(w http.ResponseWriter, r *http.Request) {
+	data, err := h.Service.GetAll(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

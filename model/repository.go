@@ -30,6 +30,7 @@ type IRepository[T any] interface {
 	DeleteAll(c context.Context) error
 	DeleteBatch(c context.Context, ids []int) error
 	Get(c context.Context, id int) (T, error)
+	GetAll(c context.Context) ([]T, error)
 	Query(c context.Context, q Query) (QueryResult[T], error)
 	Update(c context.Context, id int, t T) error
 }
@@ -74,6 +75,11 @@ func (r Repository[T]) DeleteBatch(c context.Context, ids []int) error {
 func (r Repository[T]) Get(c context.Context, id int) (T, error) {
 	var t T
 	return t, r.DB.WithContext(c).First(&t, id).Error
+}
+
+func (r Repository[T]) GetAll(c context.Context) ([]T, error) {
+	var t []T
+	return t, r.DB.WithContext(c).Find(&t).Error
 }
 
 func (r Repository[T]) Query(c context.Context, q Query) (QueryResult[T], error) {
