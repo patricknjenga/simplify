@@ -8,6 +8,7 @@ import (
 )
 
 type Query struct {
+	Count     bool
 	Direction string
 	Distinct  string
 	Limit     int
@@ -17,6 +18,7 @@ type Query struct {
 }
 
 type QueryResult[T any] struct {
+	Count int64
 	Data  []T
 	Query Query
 }
@@ -76,8 +78,12 @@ func (r Repository[T]) Get(c context.Context, id int) (T, error) {
 
 func (r Repository[T]) Query(c context.Context, q Query) (QueryResult[T], error) {
 	var (
-		t       T
-		data    []T
+		t   T
+		res = QueryResult[T]{
+			Count: 0,
+			Data:  []T{},
+			Query: q,
+		}
 		builder = r.DB.Model(&t)
 	)
 	if q.Distinct != "" {
@@ -89,10 +95,10 @@ func (r Repository[T]) Query(c context.Context, q Query) (QueryResult[T], error)
 	if q.Search != nil {
 		builder = builder.Where(q.Search)
 	}
-	return QueryResult[T]{
-		Data:  data,
-		Query: q,
-	}, builder.Limit(q.Limit).Offset(q.Offset).Find(&data).Error
+	if q.Count {
+		builder.Count(&res.Count)
+	}
+	return res, builder.Limit(q.Limit).Offset(q.Offset).Find(&res.Data).Error
 }
 
 func (r Repository[T]) Update(c context.Context, id int, t T) error {
