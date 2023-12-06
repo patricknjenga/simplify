@@ -45,6 +45,9 @@ func (r Repository[T]) Create(c context.Context, t T) error {
 }
 
 func (r Repository[T]) CreateBatch(c context.Context, t []T, b int) error {
+	if len(t) == 0 {
+		return nil
+	}
 	return r.DB.WithContext(c).CreateInBatches(&t, b).Error
 }
 
@@ -60,6 +63,9 @@ func (r Repository[T]) DeleteAll(c context.Context) error {
 
 func (r Repository[T]) DeleteBatch(c context.Context, ids []int) error {
 	var t T
+	if len(ids) == 0 {
+		return nil
+	}
 	return r.DB.WithContext(c).Delete(&t, ids).Error
 }
 
