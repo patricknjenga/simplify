@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/patricknjenga/simplify/ssh"
 	"github.com/pkg/sftp"
@@ -16,8 +17,8 @@ type Sftp struct {
 	Ssh       ssh.Ssh
 }
 
-func New(address string, password string, port string, privateKey []byte, user string, directory string) *Sftp {
-	return &Sftp{&sftp.Client{}, directory, *ssh.New(address, password, port, privateKey, user)}
+func New(address string, password string, port string, privateKey []byte, timeout time.Duration, user string, directory string) *Sftp {
+	return &Sftp{&sftp.Client{}, directory, *ssh.New(address, password, port, privateKey, timeout, user)}
 }
 
 func (s *Sftp) Dial() error {
