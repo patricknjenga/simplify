@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -17,13 +16,12 @@ type IHandler[T any] interface {
 }
 
 type Handler[T any] struct {
-	Router   *mux.Router
-	Service  IService[T]
-	Validate *validator.Validate
+	Router  *mux.Router
+	Service IService[T]
 }
 
 func NewModelHandler[T any](router *mux.Router, service IService[T]) IHandler[T] {
-	return &Handler[T]{router, service, validator.New()}
+	return &Handler[T]{router, service}
 }
 
 func (h Handler[T]) RegisterRoutes() {
