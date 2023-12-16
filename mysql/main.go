@@ -7,16 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
-func New(user string, pass string, host string, port string, database string, models ...any) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/sys?charset=utf8mb4&parseTime=True&loc=Local", user, pass, host, port)), &gorm.Config{})
+func New(dsn string, name string, models ...interface{}) (*gorm.DB, error) {
+	db, err := gorm.Open(mysql.Open(fmt.Sprintf(dsn, "")), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-	err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", database)).Error
+	err = db.Exec(fmt.Sprintf("create database if not exists %s", name)).Error
 	if err != nil {
 		return nil, err
 	}
-	db, err = gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, pass, host, port, database)), &gorm.Config{})
+	db, err = gorm.Open(mysql.Open(fmt.Sprintf(dsn, name)), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ import (
 
 type Action struct {
 	Fields []Field
-	Struct any
+	Struct interface{}
 	Url    string
 }
 
@@ -23,6 +23,7 @@ type Field struct {
 type Schema struct {
 	Fields []Field
 	Name   string
+	Struct interface{}
 }
 
 func ActionRoute(r *mux.Router, s ...Action) {
@@ -41,25 +42,7 @@ func ActionRoute(r *mux.Router, s ...Action) {
 	}).Methods(http.MethodGet)
 }
 
-func SchemaRoute(r *mux.Router, s ...any) {
-	var res = []Schema{}
-	for _, v := range s {
-		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
-			res = append(res, Schema{Fields(v), t.Name()})
-		} else {
-			res = append(res, Schema{Fields(v), t.Elem().Name()})
-		}
-	}
-
-	r.HandleFunc("/Schema", func(w http.ResponseWriter, r *http.Request) {
-		err := json.NewEncoder(w).Encode(res)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}).Methods(http.MethodGet)
-}
-
-func Fields(x any) []Field {
+func Fields(x interface{}) []Field {
 	var (
 		result  []Field
 		typeOf  = reflect.TypeOf(x)

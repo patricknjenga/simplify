@@ -3,208 +3,89 @@ package model
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
 type IHandler[T any] interface {
-	RegisterRoutes()
-	Create(w http.ResponseWriter, r *http.Request)
-	CreateBatch(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
-	DeleteAll(w http.ResponseWriter, r *http.Request)
-	DeleteBatch(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
-	GetAll(w http.ResponseWriter, r *http.Request)
-	Query(w http.ResponseWriter, r *http.Request)
-	Update(w http.ResponseWriter, r *http.Request)
+	Post(w http.ResponseWriter, r *http.Request)
+	Put(w http.ResponseWriter, r *http.Request)
+	RegisterRoutes()
 }
 
-type MuxHandler[T any] struct {
-	Router  *mux.Router
-	Service IService[T]
+type Handler[T any] struct {
+	Router   *mux.Router
+	Service  IService[T]
+	Validate *validator.Validate
 }
 
 func NewModelHandler[T any](router *mux.Router, service IService[T]) IHandler[T] {
-	return &MuxHandler[T]{router, service}
+	return &Handler[T]{router, service, validator.New()}
 }
 
-func (h MuxHandler[T]) RegisterRoutes() {
-	h.Router.HandleFunc("/", h.Create).Methods(http.MethodPost)
-	h.Router.HandleFunc("/batch", h.CreateBatch).Methods(http.MethodPost)
-
-	h.Router.HandleFunc("/all", h.DeleteAll).Methods(http.MethodDelete)
-	h.Router.HandleFunc("/batch", h.DeleteBatch).Methods(http.MethodDelete)
-	h.Router.HandleFunc("/{id:[0-9]+}", h.Delete).Methods(http.MethodDelete)
-
-	h.Router.HandleFunc("/", h.Query).Methods(http.MethodGet)
-	h.Router.HandleFunc("/all", h.GetAll).Methods(http.MethodGet)
-	h.Router.HandleFunc("/{id:[0-9]+}", h.Get).Methods(http.MethodGet)
-
-	h.Router.HandleFunc("/{id:[0-9]+}", h.Update).Methods(http.MethodPut)
+func (h Handler[T]) RegisterRoutes() {
+	h.Router.Path("/").Methods(http.MethodDelete).HandlerFunc(h.Delete)
+	h.Router.Path("/").Methods(http.MethodGet).HandlerFunc(h.Get)
+	h.Router.Path("/").Methods(http.MethodPost).HandlerFunc(h.Post)
+	h.Router.Path("/").Methods(http.MethodPut).HandlerFunc(h.Put)
 }
 
-func (h MuxHandler[T]) Create(w http.ResponseWriter, r *http.Request) {
-	var (
-		t T
-	)
+func (h Handler[T]) Delete(w http.ResponseWriter, r *http.Request) {
+	var t []T
 	err := json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = validator.New().Struct(&t)
+	err = h.Service.Delete(r.Context(), t)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	}
+}
+
+func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
+	var q Query
+	err := json.NewDecoder(r.Body).Decode(&q)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	count, data, err := h.Service.Get(r.Context(), q)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	err = h.Service.Create(r.Context(), t)
+	err = json.NewEncoder(w).Encode(map[string]any{"Count": count, "Data": data})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 }
 
-func (h MuxHandler[T]) CreateBatch(w http.ResponseWriter, r *http.Request) {
-	var (
-		t []T
-	)
+func (h Handler[T]) Post(w http.ResponseWriter, r *http.Request) {
+	var t []T
 	err := json.NewDecoder(r.Body).Decode(&t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, v := range t {
-		err = validator.New().Struct(&v)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-			return
-		}
-	}
-	err = h.Service.CreateBatch(r.Context(), t, 100)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h MuxHandler[T]) Delete(w http.ResponseWriter, r *http.Request) {
-	var (
-		vars = mux.Vars(r)
-	)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = h.Service.Delete(r.Context(), id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h MuxHandler[T]) DeleteAll(w http.ResponseWriter, r *http.Request) {
-	err := h.Service.DeleteAll(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h MuxHandler[T]) DeleteBatch(w http.ResponseWriter, r *http.Request) {
-	var (
-		ids []int
-	)
-	err := json.NewDecoder(r.Body).Decode(&ids)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = h.Service.DeleteBatch(r.Context(), ids)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h MuxHandler[T]) Query(w http.ResponseWriter, r *http.Request) {
-	var query Query
-	if r.URL.Query().Get("q") != "" {
-		err := json.Unmarshal([]byte(r.URL.Query().Get("q")), &query)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-	data, err := h.Service.Query(r.Context(), query)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (h MuxHandler[T]) Get(w http.ResponseWriter, r *http.Request) {
-	var (
-		vars = mux.Vars(r)
-	)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	data, err := h.Service.Get(r.Context(), id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (h MuxHandler[T]) GetAll(w http.ResponseWriter, r *http.Request) {
-	data, err := h.Service.GetAll(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (h MuxHandler[T]) Update(w http.ResponseWriter, r *http.Request) {
-	var (
-		t    T
-		vars = mux.Vars(r)
-	)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = json.NewDecoder(r.Body).Decode(&t)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = validator.New().Struct(&t)
+	err = h.Service.Post(r.Context(), t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	}
+}
+
+func (h Handler[T]) Put(w http.ResponseWriter, r *http.Request) {
+	var t []T
+	err := json.NewDecoder(r.Body).Decode(&t)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = h.Service.Update(r.Context(), id, t)
+	err = h.Service.Put(r.Context(), t)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 }
