@@ -20,6 +20,11 @@ type Field struct {
 	Type string
 }
 
+type Route struct {
+	Method string
+	Path   string
+}
+
 func ActionRoute(r *mux.Router, s ...Action) {
 	var res = []Action{}
 	for _, v := range s {
@@ -55,4 +60,28 @@ func Fields(x interface{}) []Field {
 		}
 	}
 	return result
+}
+
+func Routes(rt *mux.Router) error {
+	return rt.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		var routes []Route
+		methods, err := route.GetMethods()
+		if err != nil {
+			return err
+		}
+		path, err := route.GetPathTemplate()
+		if err != nil {
+			return err
+		}
+		for _, v := range methods {
+			routes = append(routes, Route{v, path})
+		}
+		router.Path("/").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewEncoder(w).Encode(routes)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		})
+		return nil
+	})
 }

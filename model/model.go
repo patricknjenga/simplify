@@ -21,7 +21,7 @@ func New[T interface{}](rt *mux.Router, db *gorm.DB) *Model[T] {
 		n = reflect.TypeOf(t).Name()
 		r = NewGormRepository[T](1000, db)
 		s = NewModelService[T](r)
-		h = NewModelHandler[T](rt.PathPrefix(fmt.Sprintf("/%s", n)).Subrouter(), s)
+		h = NewModelHandler[T](rt.PathPrefix(fmt.Sprintf("/Model/%s", n)).Subrouter(), s)
 	)
 	return &Model[T]{h, n, r, s}
 }
