@@ -45,7 +45,7 @@ func (h Handler[T]) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
 	var q Query
-	err := json.NewDecoder(r.Body).Decode(&q)
+	err := json.Unmarshal([]byte(r.URL.Query().Get("q")), &q)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
