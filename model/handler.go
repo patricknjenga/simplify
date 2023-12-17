@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,12 +20,12 @@ type Handler[T interface{}] struct {
 	Service IService[T]
 }
 
-func NewModelHandler[T interface{}](rt *mux.Router, svc IService[T]) IHandler {
+func NewModelHandler[T interface{}](n string, rt *mux.Router, svc IService[T]) IHandler {
 	var h = &Handler[T]{rt, svc}
-	h.Router.Path("/").Methods(http.MethodDelete).HandlerFunc(h.Delete)
-	h.Router.Path("/").Methods(http.MethodGet).HandlerFunc(h.Get)
-	h.Router.Path("/").Methods(http.MethodPost).HandlerFunc(h.Post)
-	h.Router.Path("/").Methods(http.MethodPut).HandlerFunc(h.Put)
+	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodDelete).HandlerFunc(h.Delete)
+	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodGet).HandlerFunc(h.Get)
+	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodPost).HandlerFunc(h.Post)
+	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodPut).HandlerFunc(h.Put)
 	return h
 }
 
