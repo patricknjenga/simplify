@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,10 +21,10 @@ type Handler[T interface{}] struct {
 
 func NewModelHandler[T interface{}](n string, rt *mux.Router, svc IService[T]) IHandler {
 	var h = &Handler[T]{rt, svc}
-	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodDelete).HandlerFunc(h.Delete)
-	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodGet).HandlerFunc(h.Get)
-	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodPost).HandlerFunc(h.Post)
-	h.Router.Path(fmt.Sprintf("/Model/%s", n)).Methods(http.MethodPut).HandlerFunc(h.Put)
+	h.Router.Path(n).Methods(http.MethodDelete).HandlerFunc(h.Delete)
+	h.Router.Path(n).Methods(http.MethodGet).HandlerFunc(h.Get)
+	h.Router.Path(n).Methods(http.MethodPost).HandlerFunc(h.Post)
+	h.Router.Path(n).Methods(http.MethodPut).HandlerFunc(h.Put)
 	return h
 }
 
@@ -44,10 +43,7 @@ func (h Handler[T]) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
-	var (
-		t T
-		q Query
-	)
+	var q Query
 	err := json.NewDecoder(r.Body).Decode(&q)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -59,10 +55,8 @@ func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = json.NewEncoder(w).Encode(map[string]interface{}{
-		"Count":  count,
-		"Data":   data,
-		"Fields": Fields(t),
-		"Struct": t,
+		"Count": count,
+		"Data":  data,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)

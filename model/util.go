@@ -48,23 +48,6 @@ func Actions(r *mux.Router, s ...Action) {
 	})
 }
 
-func Schemas(r *mux.Router, s ...interface{}) {
-	var res = []Schema{}
-	for _, v := range s {
-		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
-			res = append(res, Schema{Fields(v), t.Name(), s})
-		} else {
-			res = append(res, Schema{Fields(v), t.Elem().Name(), s})
-		}
-	}
-	r.Path("/Schema").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := json.NewEncoder(w).Encode(res)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	})
-}
-
 func Fields(x interface{}) []Field {
 	var (
 		result  []Field
@@ -112,4 +95,21 @@ func Routes(rt *mux.Router) error {
 		}
 	})
 	return nil
+}
+
+func Schemas(r *mux.Router, s ...interface{}) {
+	var res = []Schema{}
+	for _, v := range s {
+		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
+			res = append(res, Schema{Fields(v), t.Name(), s})
+		} else {
+			res = append(res, Schema{Fields(v), t.Elem().Name(), s})
+		}
+	}
+	r.Path("/Schema").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 }
