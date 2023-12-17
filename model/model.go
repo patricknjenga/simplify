@@ -15,7 +15,7 @@ type Model[T interface{}] struct {
 	Service    IService[T]
 }
 
-func (m Model[T]) New(rt *mux.Router, db *gorm.DB) *Model[T] {
+func New[T interface{}](rt *mux.Router, db *gorm.DB) *Model[T] {
 	var (
 		t T
 		n = reflect.TypeOf(t).Name()
