@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Model[T any] struct {
+type Model[T interface{}] struct {
 	Handler    IHandler
 	Name       string
 	Repository IRepository[T]

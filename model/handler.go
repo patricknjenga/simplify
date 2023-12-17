@@ -14,12 +14,12 @@ type IHandler interface {
 	Put(w http.ResponseWriter, r *http.Request)
 }
 
-type Handler[T any] struct {
+type Handler[T interface{}] struct {
 	Router  *mux.Router
 	Service IService[T]
 }
 
-func NewModelHandler[T any](rt *mux.Router, svc IService[T]) IHandler {
+func NewModelHandler[T interface{}](rt *mux.Router, svc IService[T]) IHandler {
 	var h = &Handler[T]{rt, svc}
 	h.Router.Path("/").Methods(http.MethodDelete).HandlerFunc(h.Delete)
 	h.Router.Path("/").Methods(http.MethodGet).HandlerFunc(h.Get)
@@ -38,6 +38,7 @@ func (h Handler[T]) Delete(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.Delete(r.Context(), t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
 	}
 }
 
@@ -56,7 +57,7 @@ func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	err = json.NewEncoder(w).Encode(map[string]any{
+	err = json.NewEncoder(w).Encode(map[string]interface{}{
 		"Count":  count,
 		"Data":   data,
 		"Fields": Fields(t),
@@ -64,6 +65,7 @@ func (h Handler[T]) Get(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
 	}
 }
 
@@ -77,6 +79,7 @@ func (h Handler[T]) Post(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.Post(r.Context(), t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
 	}
 }
 
@@ -90,5 +93,6 @@ func (h Handler[T]) Put(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.Put(r.Context(), t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
 	}
 }

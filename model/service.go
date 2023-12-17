@@ -6,19 +6,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type IService[T any] interface {
+type IService[T interface{}] interface {
 	Delete(c context.Context, t []T) error
 	Get(c context.Context, q Query) (int64, []T, error)
 	Post(c context.Context, t []T) error
 	Put(c context.Context, t []T) error
 }
 
-type Service[T any] struct {
+type Service[T interface{}] struct {
 	Repository IRepository[T]
 	Validate   *validator.Validate
 }
 
-func NewModelService[T any](r IRepository[T]) IService[T] {
+func NewModelService[T interface{}](r IRepository[T]) IService[T] {
 	return &Service[T]{r, validator.New()}
 }
 

@@ -10,7 +10,7 @@ import (
 
 type Action struct {
 	Fields []Field
-	Struct any
+	Struct interface{}
 	Url    string
 }
 
@@ -36,7 +36,7 @@ func ActionRoute(r *mux.Router, s ...Action) {
 	}).Methods(http.MethodGet)
 }
 
-func Fields(x any) []Field {
+func Fields(x interface{}) []Field {
 	var (
 		result  []Field
 		typeOf  = reflect.TypeOf(x)
