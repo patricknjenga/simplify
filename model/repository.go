@@ -77,7 +77,7 @@ func (r Repository[T]) Post(c context.Context, t []T) error {
 	if len(t) == 0 {
 		return nil
 	}
-	return r.DB.WithContext(c).CreateInBatches(&t, r.Batch).Error
+	return r.DB.WithContext(c).CreateInBatches(t, r.Batch).Error
 }
 
 func (r Repository[T]) Put(c context.Context, t []T) error {
