@@ -26,7 +26,13 @@ type Route struct {
 	Path   string
 }
 
-func ActionRoute(r *mux.Router, s ...Action) {
+type Schema struct {
+	Fields []Field
+	Name   string
+	Struct interface{}
+}
+
+func Actions(r *mux.Router, s ...Action) {
 	var res = []Action{}
 	for _, v := range s {
 		if v.Struct != nil {
@@ -35,6 +41,23 @@ func ActionRoute(r *mux.Router, s ...Action) {
 		res = append(res, v)
 	}
 	r.Path("/Action").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
+func Schemas(r *mux.Router, s ...interface{}) {
+	var res = []Schema{}
+	for _, v := range s {
+		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
+			res = append(res, Schema{Fields(v), t.Name(), s})
+		} else {
+			res = append(res, Schema{Fields(v), t.Elem().Name(), s})
+		}
+	}
+	r.Path("/Schema").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
