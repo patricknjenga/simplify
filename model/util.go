@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -33,12 +34,12 @@ func ActionRoute(r *mux.Router, s ...Action) {
 		}
 		res = append(res, v)
 	}
-	r.HandleFunc("/Actions", func(w http.ResponseWriter, r *http.Request) {
+	r.Path("/Action").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-	}).Methods(http.MethodGet)
+	})
 }
 
 func Fields(x interface{}) []Field {
@@ -65,13 +66,13 @@ func Fields(x interface{}) []Field {
 func Routes(rt *mux.Router) error {
 	var routes []Route
 	err := rt.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		methods, err := route.GetMethods()
-		if err != nil {
-			return err
-		}
 		path, err := route.GetPathTemplate()
 		if err != nil {
 			return err
+		}
+		methods, err := route.GetMethods()
+		if err != nil {
+			return fmt.Errorf("%s %w", path, err)
 		}
 		for _, v := range methods {
 			routes = append(routes, Route{v, path})
