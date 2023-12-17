@@ -63,8 +63,8 @@ func Fields(x interface{}) []Field {
 }
 
 func Routes(rt *mux.Router) error {
-	return rt.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		var routes []Route
+	var routes []Route
+	err := rt.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		methods, err := route.GetMethods()
 		if err != nil {
 			return err
@@ -76,12 +76,16 @@ func Routes(rt *mux.Router) error {
 		for _, v := range methods {
 			routes = append(routes, Route{v, path})
 		}
-		router.Path("/").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			err := json.NewEncoder(w).Encode(routes)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-		})
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	rt.Path("/").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(routes)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+	return nil
 }
