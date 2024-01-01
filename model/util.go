@@ -101,9 +101,9 @@ func Schemas(r *mux.Router, s ...interface{}) {
 	var res = []Schema{}
 	for _, v := range s {
 		if t := reflect.TypeOf(v); t.Kind() != reflect.Ptr {
-			res = append(res, Schema{Fields(v), t.Name(), s})
+			res = append(res, Schema{Fields(v), t.Name(), v})
 		} else {
-			res = append(res, Schema{Fields(v), t.Elem().Name(), s})
+			res = append(res, Schema{Fields(v), t.Elem().Name(), v})
 		}
 	}
 	r.Path("/Schema").Methods(http.MethodGet).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
