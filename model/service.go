@@ -23,7 +23,7 @@ func NewModelService[T interface{}](r IRepository[T]) IService[T] {
 }
 
 func (s Service[T]) Delete(c context.Context, t []T) error {
-	err := s.Validate.Struct(&t)
+	err := s.Validate.Struct(t)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (s Service[T]) Get(c context.Context, q Query) (int64, []T, error) {
 }
 
 func (s Service[T]) Post(c context.Context, t []T) error {
-	err := s.Validate.Struct(&t)
+	err := s.Validate.Struct(t)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (s Service[T]) Post(c context.Context, t []T) error {
 }
 
 func (s Service[T]) Put(c context.Context, t []T) error {
-	err := s.Validate.Struct(&t)
+	err := s.Validate.Struct(t)
 	if err != nil {
 		return err
 	}
